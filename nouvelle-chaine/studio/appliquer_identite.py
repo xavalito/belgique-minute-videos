@@ -1,11 +1,14 @@
 """Applique l'identité Argent Minute au kit vidéo (copié dans le dossier donné, ex. ~/bm).
 
-Usage : python3 appliquer_identite.py ~/bm
+Usage : python3 appliquer_identite.py ~/bm [--garder-logo]
+  --garder-logo : garde le logo Belgique Minute (rubrique « Argent Minute » de la chaîne Belgique Minute).
 Remplace le logo, les couleurs (bleu nuit → vert profond, jaune → or) et le bandeau d'en-tête.
 """
 import sys, os, re, shutil, glob
 
-kit = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/bm")
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+kit = os.path.expanduser(args[0] if args else "~/bm")
+garder_logo = "--garder-logo" in sys.argv
 here = os.path.dirname(os.path.abspath(__file__))
 
 COULEURS = {
@@ -18,7 +21,8 @@ COULEURS = {
 }
 TEXTES = {"ACTU BELGIQUE · ": "ARGENT MINUTE · "}
 
-shutil.copyfile(os.path.join(here, "logo_argent_772.png"), os.path.join(kit, "assets/logo/logo_bm.png"))
+if not garder_logo:
+    shutil.copyfile(os.path.join(here, "logo_argent_772.png"), os.path.join(kit, "assets/logo/logo_bm.png"))
 n = 0
 for f in glob.glob(os.path.join(kit, "src", "*.py")):
     s = open(f, encoding="utf-8").read(); o = s
@@ -31,4 +35,4 @@ for f in glob.glob(os.path.join(kit, "src", "*.py")):
 reste = [c for f in glob.glob(os.path.join(kit, "src", "*.py")) for c in COULEURS if c.lower() in open(f).read().lower()]
 assert not reste, f"couleurs non remplacées : {reste}"
 assert "ARGENT MINUTE · " in open(os.path.join(kit, "src/render.py")).read()
-print(f"Identité Argent Minute appliquée ({n} fichiers modifiés, logo remplacé).")
+print(f"Identité Argent Minute appliquée ({n} fichiers modifiés, logo {'conservé' if garder_logo else 'remplacé'}).")
